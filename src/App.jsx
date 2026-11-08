@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import MapView from './components/MapView.jsx'
 import AddressInput from './components/AddressInput.jsx'
 import Flag from './components/Flag.jsx'
@@ -91,6 +91,30 @@ export default function App() {
   const isFav = (p) => !!p && favs.some((f) => sameSpot(f, p))
   const toggleFav = (p) =>
     setFavs((fs) => (fs.some((f) => sameSpot(f, p)) ? fs.filter((f) => !sameSpot(f, p)) : [...fs, p]))
+  // Flytta en favorit från index a till index b (pilar och dra-och-släpp)
+  const moveFav = (a, b) =>
+    setFavs((fs) => {
+      if (a === b || b < 0 || b >= fs.length) return fs
+      const next = [...fs]
+      next.splice(b, 0, next.splice(a, 1)[0])
+      return next
+    })
+  // Efter en pilflytt: ge fokus till samma rad, så man kan trycka igen
+  const pendingFocus = useRef(null)
+  const [dragIdx, setDragIdx] = useState(null) // rad som dras
+  const [overIdx, setOverIdx] = useState(null) // rad man släpper över
+  useEffect(() => {
+    const p = pendingFocus.current
+    if (!p) return
+    pendingFocus.current = null
+    const el = document.querySelector(`[data-fav="${p.idx}-${p.kind}"]:not(:disabled)`)
+      || document.querySelector(`[data-fav="${p.idx}-${p.kind === 'up' ? 'down' : 'up'}"]:not(:disabled)`)
+    if (el) el.focus()
+  }, [favs])
+  const arrowMove = (i, d) => {
+    pendingFocus.current = { idx: i + d, kind: d < 0 ? 'up' : 'down' }
+    moveFav(i, i + d)
+  }
   const swap = () => { setFrom(to); setTo(from) }
   const clear = () => { setFrom(null); setTo(null); setRoute(null); setError(TOKEN ? '' : 'keyMissing') }
 
@@ -152,9 +176,22 @@ export default function App() {
         {favs.length === 0 && <p className="muted">{t.noFavorites}</p>}
         <ul className="favs">
           {favs.map((f, i) => (
-            <li key={i}>
+            <li key={`${f.lng},${f.lat}`}
+              className={`${dragIdx === i ? 'dragging' : ''} ${overIdx === i && dragIdx !== i ? (dragIdx < i ? 'over-below' : 'over-above') : ''}`}
+              draggable
+              onDragStart={(e) => { setDragIdx(i); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)) }}
+              onDragOver={(e) => { e.preventDefault(); if (overIdx !== i) setOverIdx(i) }}
+              onDrop={(e) => { e.preventDefault(); if (dragIdx !== null) moveFav(dragIdx, i); setDragIdx(null); setOverIdx(null) }}
+              onDragEnd={() => { setDragIdx(null); setOverIdx(null) }}>
+              <span className="fav-grip" title={t.dragHint} aria-hidden="true">⠿</span>
               {/* Hela adressen är en knapp som fyller det aktiva fältet */}
               <button type="button" className="fav-main" onClick={() => fill(activeField, f, true)}>{f.label}</button>
+              <span className="fav-move">
+                <button type="button" data-fav={`${i}-up`} disabled={i === 0} onClick={() => arrowMove(i, -1)}
+                  aria-label={`${t.moveUp}: ${f.label}`} title={t.moveUp}>▲</button>
+                <button type="button" data-fav={`${i}-down`} disabled={i === favs.length - 1} onClick={() => arrowMove(i, 1)}
+                  aria-label={`${t.moveDown}: ${f.label}`} title={t.moveDown}>▼</button>
+              </span>
               <button type="button" className="fav-del" onClick={() => toggleFav(f)} aria-label={t.removeFav} title={t.removeFav}>✕</button>
             </li>
           ))}

@@ -38,6 +38,7 @@ React + Vite (JavaScript), `mapbox-gl`, `base: './'` för GitHub Pages. Data spa
 - Efter ett tryck på en favorit byter markeringen alltid till det andra fältet (Från → Till, Till → Från).
 - Efter val av adressförslag flyttas markeringen till nästa tomma fält; är båda fyllda ligger den kvar.
 - Kryss-knappen till höger tar bort favoriten.
+- Ordning: upp/ned-pilar och dra-och-släpp (HTML5 drag, `moveFav` i `App.jsx`). Ordningen sparas i `localStorage`; nya favoriter läggs sist. Dra och släpp fungerar inte på tryckskärm, där används pilarna.
 
 ## Status
 - [x] Grund, karta, adresser, klick, färdsätt, rutt, favoriter, språk, design

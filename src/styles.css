@@ -136,6 +136,22 @@ h2 { font-size: 1rem; margin: 22px 0 8px; }
   background: transparent; border: 1px solid var(--line); color: var(--muted);
 }
 .fav-del:hover { color: var(--danger); border-color: var(--danger); }
+/* Ordna: handtag, pilar och dragmarkering */
+.favs li { position: relative; }
+.fav-grip { flex: none; display: grid; place-items: center; width: 22px; color: var(--muted); cursor: grab; user-select: none; }
+.fav-move { flex: none; display: flex; flex-direction: column; gap: 2px; }
+.fav-move button {
+  width: 44px; flex: 1; min-height: 23px; padding: 0; font-size: 0.7rem; border-radius: 8px; cursor: pointer;
+  background: transparent; border: 1px solid var(--line); color: var(--cyan);
+}
+.fav-move button:disabled { opacity: 0.25; cursor: default; }
+.favs li.dragging { opacity: 0.4; }
+.favs li.over-above::before, .favs li.over-below::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 3px; border-radius: 2px;
+  background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+}
+.favs li.over-above::before { top: -5px; }
+.favs li.over-below::after { bottom: -5px; }
 .fills strong { color: var(--cyan); font-weight: 700; }
 
 /* Aktivt adressfält: lysande kant */
