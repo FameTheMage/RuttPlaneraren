@@ -1,0 +1,5 @@
+node_modules
+dist
+TOKEN.secret
+.env.local
+.env*.local
